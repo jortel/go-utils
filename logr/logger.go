@@ -11,18 +11,18 @@ import (
 
 const (
 	EnvDevelopment = "LOG_DEVELOPMENT"
-	EnvJson        = "LOG_JSON"
+	EnvStructured  = "LOG_STRUCTURED"
 	EnvLevel       = "LOG_LEVEL"
 )
 
 //
 // Sink -.
 type Sink struct {
-	development bool
 	delegate    *log.Logger
 	fields      log.Fields
 	name        string
-	json        bool
+	development bool
+	structured  bool
 	level       int
 }
 
@@ -49,9 +49,9 @@ func (s *Sink) Init(_ logr.RuntimeInfo) {
 		fmt.DisableQuote = true
 		s.delegate.SetFormatter(fmt)
 	}
-	v = os.Getenv(EnvJson)
-	s.json, _ = strconv.ParseBool(v)
-	if s.json {
+	v = os.Getenv(EnvStructured)
+	s.structured, _ = strconv.ParseBool(v)
+	if s.structured {
 		fmt := new(log.JSONFormatter)
 		fmt.PrettyPrint = true
 		s.delegate.Formatter = fmt
@@ -84,7 +84,7 @@ func (s *Sink) Error(err error, message string, kvpair ...interface{}) {
 				kvpair...)
 			kvpair = context
 		}
-		if s.json {
+		if s.structured {
 			fields := s.asFields(kvpair...)
 			fields["error"] = xErr.Error()
 			fields["stack"] = xErr.Stack()
