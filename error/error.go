@@ -143,7 +143,7 @@ func (e *Error) append(kvpair []interface{}) {
 // Build caused-by.
 func (e *Error) causedBy(error, caused string) string {
 	return fmt.Sprintf(
-		"%s caused by: '%s'",
+		"%s | caused by: '%s'",
 		error,
 		caused)
 }

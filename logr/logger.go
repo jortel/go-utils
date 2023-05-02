@@ -29,9 +29,15 @@ type Sink struct {
 //
 // WithName returns a named logger.
 func WithName(name string, kvpair ...interface{}) logr.Logger {
-	return logr.New(&Sink{name: name})
+	return logr.New(
+		&Sink{
+			name:   name,
+			fields: fields(kvpair),
+		})
 }
 
+//
+// Init builds the delegate logger.
 func (s *Sink) Init(_ logr.RuntimeInfo) {
 	s.delegate = log.New()
 	v := os.Getenv(EnvDevelopment)
@@ -64,8 +70,9 @@ func (s *Sink) Init(_ logr.RuntimeInfo) {
 //
 // Info logs at info.
 func (s *Sink) Info(_ int, message string, kvpair ...interface{}) {
-	fields := s.asFields(kvpair...)
-	entry := s.delegate.WithFields(fields)
+	fields := fields(kvpair)
+	entry := s.delegate.WithFields(s.fields)
+	entry = entry.WithFields(fields)
 	entry.Info(s.named(message))
 }
 
@@ -85,15 +92,17 @@ func (s *Sink) Error(err error, message string, kvpair ...interface{}) {
 			kvpair = context
 		}
 		if s.structured {
-			fields := s.asFields(kvpair...)
+			fields := fields(kvpair)
 			fields["error"] = xErr.Error()
 			fields["stack"] = xErr.Stack()
 			fields["logger"] = s.name
-			entry := s.delegate.WithFields(fields)
+			entry := s.delegate.WithFields(s.fields)
+			entry = entry.WithFields(fields)
 			entry.Error(s.named(message))
 		} else {
-			fields := s.asFields(kvpair...)
-			entry := s.delegate.WithFields(fields)
+			fields := fields(kvpair)
+			entry := s.delegate.WithFields(s.fields)
+			entry = entry.WithFields(fields)
 			if message != "" {
 				entry.Error(s.named(message), "\n", xErr.Error(), xErr.Stack())
 			} else {
@@ -128,19 +137,8 @@ func (s *Sink) WithName(name string) logr.LogSink {
 func (s *Sink) WithValues(kvpair ...interface{}) logr.LogSink {
 	return &Sink{
 		name:   s.name,
-		fields: s.asFields(kvpair),
+		fields: fields(kvpair),
 	}
-}
-
-func (s *Sink) asFields(kvpair ...interface{}) log.Fields {
-	fields := log.Fields{}
-	for i := range kvpair {
-		if i%2 != 0 {
-			key := fmt.Sprintf("%v", kvpair[i-1])
-			fields[key] = kvpair[i]
-		}
-	}
-	return fields
 }
 
 func (s *Sink) named(message string) (m string) {
@@ -149,4 +147,17 @@ func (s *Sink) named(message string) (m string) {
 	}
 	m = m + message
 	return
+}
+
+//
+// fields returns fields for kvpair.
+func fields(kvpair []interface{}) log.Fields {
+	fields := log.Fields{}
+	for i := range kvpair {
+		if i%2 != 0 {
+			key := fmt.Sprintf("%v", kvpair[i-1])
+			fields[key] = kvpair[i]
+		}
+	}
+	return fields
 }
