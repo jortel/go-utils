@@ -1,5 +1,5 @@
 # utils
-Provides Go utility packages.
+Provides useful Go utility packages.
 
 #### Error
 
