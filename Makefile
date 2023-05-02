@@ -1,9 +1,9 @@
 PKG = ./error/... \
       ./logr/... \
-      ./test/...
+      ./cmd/...
 
 bin: fmt vet
-	go build -o bin/test github.com/jortel/go-utils/test
+	go build -o bin/cmd github.com/jortel/go-utils/cmd
 
 fmt:
 	go fmt ${PKG}

@@ -3,7 +3,6 @@ package error
 import (
 	"errors"
 	"fmt"
-	"math"
 	"runtime"
 	"strings"
 )
@@ -127,8 +126,7 @@ func (e *Error) append(kvpair []interface{}) {
 	if len(kvpair) == 0 {
 		return
 	}
-	fLen := float64(len(kvpair))
-	odd := math.Mod(fLen, 2) != 0
+	odd := len(kvpair)%2 != 0
 	if description, cast := kvpair[0].(string); odd && cast {
 		kvpair = kvpair[1:]
 		if len(e.description) > 0 {

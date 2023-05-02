@@ -1,5 +1,5 @@
 /*
-The error package provides practical wrap/unwrap features.
+Package error package provides practical wrap/unwrap features.
 The Wrap() function will capture caller provided and the captured stack.
 The stack is captured only on the first call to Wrap().
 Subsequent calls to Wrap() will augment the description and key/value
@@ -18,10 +18,7 @@ c = Unwrap(b)  // a == c
 //
 // Wrap with context.
 url := "http://host/..."
-d := e1.Wrap(
-    a, "Web request failed."
-    "url", url)
-
+d := e1.Wrap("Web request failed.", "url", url)
 d.Error()   // "Web request failed. caused by: 'No route to host'"
 d.Context() // []string{"url", "http://host/..."}
 */

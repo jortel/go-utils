@@ -1,66 +1,72 @@
 package logr
 
 import (
+	"fmt"
 	"github.com/go-logr/logr"
 	liberr "github.com/jortel/go-utils/error"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 )
 
 const (
-	Stack = "stacktrace"
-	Error = "error"
-	None  = ""
-)
-const (
 	EnvDevelopment = "LOG_DEVELOPMENT"
+	EnvJson        = "LOG_JSON"
 	EnvLevel       = "LOG_LEVEL"
 )
 
 //
-// Settings is sink settings.
-var Settings _Settings
-
-func init() {
-	Settings.Load()
-}
-
-//
-// Factory is a factory.
-var Factory Builder
-
-func init() {
-	Factory = &ZapBuilder{}
-}
-
-//
 // Sink -.
 type Sink struct {
-	Delegate logr.LogSink
-	name     string
+	development bool
+	delegate    *log.Logger
+	fields      log.Fields
+	name        string
+	json        bool
+	level       int
 }
 
 //
 // WithName returns a named logger.
 func WithName(name string, kvpair ...interface{}) logr.Logger {
-	d := Factory.New()
-	s := &Sink{
-		Delegate: d.GetSink(),
-		name:     name,
-	}
-	s.Delegate = s.Delegate.WithValues(kvpair...)
-	s.Delegate = s.Delegate.WithName(name)
-	return logr.New(s)
+	return logr.New(&Sink{name: name})
 }
 
-func (s *Sink) Init(info logr.RuntimeInfo) {
-	return
+func (s *Sink) Init(_ logr.RuntimeInfo) {
+	s.delegate = log.New()
+	v := os.Getenv(EnvDevelopment)
+	b, _ := strconv.ParseBool(v)
+	s.development = b
+	if s.development {
+		fmt := new(log.TextFormatter)
+		fmt.TimestampFormat = "2006-01-02 15:04:05"
+		fmt.FullTimestamp = true
+		s.delegate.SetFormatter(fmt)
+	} else {
+		fmt := new(log.TextFormatter)
+		fmt.FullTimestamp = true
+		fmt.DisableColors = true
+		fmt.DisableQuote = true
+		s.delegate.SetFormatter(fmt)
+	}
+	v = os.Getenv(EnvJson)
+	s.json, _ = strconv.ParseBool(v)
+	if s.json {
+		fmt := new(log.JSONFormatter)
+		fmt.PrettyPrint = true
+		s.delegate.Formatter = fmt
+	}
+	v = os.Getenv(EnvLevel)
+	n, _ := strconv.Atoi(v)
+	s.level = n
 }
 
 //
 // Info logs at info.
-func (s *Sink) Info(level int, message string, kvpair ...interface{}) {
-	s.Delegate.Info(level, message, kvpair...)
+func (s *Sink) Info(_ int, message string, kvpair ...interface{}) {
+	fields := s.asFields(kvpair...)
+	entry := s.delegate.WithFields(fields)
+	entry.Info(s.named(message))
 }
 
 //
@@ -69,101 +75,78 @@ func (s *Sink) Error(err error, message string, kvpair ...interface{}) {
 	if err == nil {
 		return
 	}
-	le, wrapped := err.(*liberr.Error)
-	if wrapped {
-		err = le.Unwrap()
-		if context := le.Context(); context != nil {
+	xErr, cast := err.(*liberr.Error)
+	if cast {
+		err = xErr.Unwrap()
+		if context := xErr.Context(); context != nil {
 			context = append(
 				context,
 				kvpair...)
 			kvpair = context
 		}
-		kvpair = append(
-			kvpair,
-			Error,
-			le.Error(),
-			Stack,
-			le.Stack())
-
-		s.Delegate.Info(0, message, kvpair...)
-		return
+		if s.json {
+			fields := s.asFields(kvpair...)
+			fields["error"] = xErr.Error()
+			fields["stack"] = xErr.Stack()
+			fields["logger"] = s.name
+			entry := s.delegate.WithFields(fields)
+			entry.Error(s.named(message))
+		} else {
+			fields := s.asFields(kvpair...)
+			entry := s.delegate.WithFields(fields)
+			if message != "" {
+				entry.Error(s.named(message), "\n", xErr.Error(), xErr.Stack())
+			} else {
+				entry.Error(s.named(xErr.Error()), xErr.Stack())
+			}
+		}
+	} else {
+		if wErr, wrapped := err.(interface {
+			Unwrap() error
+		}); wrapped {
+			err = wErr.Unwrap()
+		}
+		err = liberr.Wrap(err)
+		s.Error(err, message, kvpair...)
 	}
-	if wErr, wrapped := err.(interface {
-		Unwrap() error
-	}); wrapped {
-		err = wErr.Unwrap()
-	}
-	if err == nil {
-		return
-	}
-
-	s.Delegate.Error(err, message, kvpair...)
-}
-
-//
-// Trace logs an error without a description.
-func (s *Sink) Trace(err error, kvpair ...interface{}) {
-	s.Error(err, None, kvpair...)
 }
 
 //
 // Enabled returns whether logger is enabled.
 func (s *Sink) Enabled(level int) bool {
-	return s.Delegate.Enabled(level)
+	return s.level >= level
 }
 
 //
 // WithName returns a logger with name.
 func (s *Sink) WithName(name string) logr.LogSink {
-	return &Sink{
-		Delegate: s.Delegate.WithName(name),
-		name:     name,
-	}
+	return &Sink{name: name}
 }
 
 //
 // WithValues returns a logger with values.
 func (s *Sink) WithValues(kvpair ...interface{}) logr.LogSink {
 	return &Sink{
-		Delegate: s.Delegate.WithValues(kvpair...),
-		name:     s.name,
+		name:   s.name,
+		fields: s.asFields(kvpair),
 	}
 }
 
-//
-// Package settings.
-type _Settings struct {
-	// Debug threshold.
-	// Level determines when the real
-	// debug logger is used.
-	DebugThreshold int
-	// Development configuration.
-	Development bool
-	// Info level threshold.
-	// Higher level increases verbosity.
-	Level int
-}
-
-//
-// Load determine development logger.
-func (r *_Settings) Load() {
-	r.DebugThreshold = 4
-	if s, found := os.LookupEnv(EnvDevelopment); found {
-		bv, err := strconv.ParseBool(s)
-		if err == nil {
-			r.Development = bv
+func (s *Sink) asFields(kvpair ...interface{}) log.Fields {
+	fields := log.Fields{}
+	for i := range kvpair {
+		if i%2 != 0 {
+			key := fmt.Sprintf("%v", kvpair[i-1])
+			fields[key] = kvpair[i]
 		}
 	}
-	if s, found := os.LookupEnv(EnvLevel); found {
-		n, err := strconv.ParseInt(s, 10, 8)
-		if err == nil {
-			r.Level = int(n)
-		}
-	}
+	return fields
 }
 
-//
-// The level is at or above the debug threshold.
-func (r *_Settings) atDebug(level int) bool {
-	return level >= r.DebugThreshold
+func (s *Sink) named(message string) (m string) {
+	if s.name != "" {
+		m = "[" + s.name + "] "
+	}
+	m = m + message
+	return
 }
