@@ -15,7 +15,6 @@ const (
 	EnvLevel       = "LOG_LEVEL"
 )
 
-//
 // Sink -.
 type Sink struct {
 	delegate    *log.Logger
@@ -26,7 +25,6 @@ type Sink struct {
 	level       int
 }
 
-//
 // WithName returns a named logger.
 func WithName(name string, kvpair ...interface{}) logr.Logger {
 	return logr.New(
@@ -36,7 +34,6 @@ func WithName(name string, kvpair ...interface{}) logr.Logger {
 		})
 }
 
-//
 // Init builds the delegate logger.
 func (s *Sink) Init(_ logr.RuntimeInfo) {
 	s.delegate = log.New()
@@ -67,7 +64,6 @@ func (s *Sink) Init(_ logr.RuntimeInfo) {
 	s.level = n
 }
 
-//
 // Info logs at info.
 func (s *Sink) Info(_ int, message string, kvpair ...interface{}) {
 	fields := fields(kvpair)
@@ -76,7 +72,6 @@ func (s *Sink) Info(_ int, message string, kvpair ...interface{}) {
 	entry.Info(s.named(message))
 }
 
-//
 // Error logs an error.
 func (s *Sink) Error(err error, message string, kvpair ...interface{}) {
 	if err == nil {
@@ -120,19 +115,16 @@ func (s *Sink) Error(err error, message string, kvpair ...interface{}) {
 	}
 }
 
-//
 // Enabled returns whether logger is enabled.
 func (s *Sink) Enabled(level int) bool {
 	return s.level >= level
 }
 
-//
 // WithName returns a logger with name.
 func (s *Sink) WithName(name string) logr.LogSink {
 	return &Sink{name: name}
 }
 
-//
 // WithValues returns a logger with values.
 func (s *Sink) WithValues(kvpair ...interface{}) logr.LogSink {
 	return &Sink{
@@ -149,7 +141,6 @@ func (s *Sink) named(message string) (m string) {
 	return
 }
 
-//
 // fields returns fields for kvpair.
 func fields(kvpair []interface{}) log.Fields {
 	fields := log.Fields{}
