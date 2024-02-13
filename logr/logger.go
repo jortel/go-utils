@@ -2,11 +2,12 @@ package logr
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/go-logr/logr"
 	liberr "github.com/jortel/go-utils/error"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"strconv"
 )
 
 const (

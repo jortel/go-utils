@@ -2,8 +2,9 @@ package error
 
 import (
 	"errors"
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func TestError(t *testing.T) {
