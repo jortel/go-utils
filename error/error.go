@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-//
 // New returns a new wrapped error.
 func New(m string, kvpair ...interface{}) error {
 	return Wrap(
@@ -15,7 +14,6 @@ func New(m string, kvpair ...interface{}) error {
 		kvpair...)
 }
 
-//
 // Wrap an error.
 // Returns `err` when err is `nil` or error.
 func Wrap(err error, kvpair ...interface{}) error {
@@ -52,7 +50,6 @@ func Wrap(err error, kvpair ...interface{}) error {
 	return newError
 }
 
-//
 // Unwrap an error.
 // Returns: the original error when not wrapped.
 func Unwrap(err error) (out error) {
@@ -71,7 +68,6 @@ func Unwrap(err error) (out error) {
 	return
 }
 
-//
 // Error provides an error with context and stack.
 type Error struct {
 	// Original error.
@@ -84,7 +80,6 @@ type Error struct {
 	stack []string
 }
 
-//
 // Error description.
 func (e Error) Error() string {
 	if len(e.description) > 0 {
@@ -94,31 +89,28 @@ func (e Error) Error() string {
 	}
 }
 
-//
 // Stack returns the stack trace.
 // Format:
-//   package.Function()
-//     file:line
-//   package.Function()
-//     file:line
-//   ...
+//
+//	package.Function()
+//	  file:line
+//	package.Function()
+//	  file:line
+//	...
 func (e Error) Stack() string {
 	return strings.Join(e.stack, "\n")
 }
 
-//
 // Context returns the`context` key/value pairs.
 func (e Error) Context() []interface{} {
 	return e.context
 }
 
-//
 // Unwrap the error.
 func (e Error) Unwrap() error {
 	return Unwrap(e.wrapped)
 }
 
-//
 // append the context.
 // And odd number of context is interpreted as:
 // a description followed by an even number of key value pairs.
@@ -139,7 +131,6 @@ func (e *Error) append(kvpair []interface{}) {
 	e.context = append(e.context, kvpair...)
 }
 
-//
 // Build caused-by.
 func (e *Error) causedBy(error, caused string) string {
 	return fmt.Sprintf(
