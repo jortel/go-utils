@@ -8,13 +8,13 @@ type Iterator interface {
 	// Reverse the content.
 	Reverse()
 	// At returns the object at index.
-	At(index int) interface{}
+	At(index int) any
 	// AtWith populates with the objet at index.
-	AtWith(int, interface{})
+	AtWith(int, any)
 	// Next returns the next object.
-	Next() (interface{}, bool)
+	Next() (any, bool)
 	// NextWith returns the next object (with).
-	NextWith(object interface{}) bool
+	NextWith(object any) bool
 	// Close the iterator.
 	Close()
 }
@@ -28,7 +28,7 @@ type FbIterator struct {
 }
 
 // Next object.
-func (r *FbIterator) Next() (object interface{}, hasNext bool) {
+func (r *FbIterator) Next() (object any, hasNext bool) {
 	if r.current < r.Len() {
 		object = r.At(r.current)
 		r.current++
@@ -39,7 +39,7 @@ func (r *FbIterator) Next() (object interface{}, hasNext bool) {
 }
 
 // NextWith returns the next object.
-func (r *FbIterator) NextWith(object interface{}) (hasNext bool) {
+func (r *FbIterator) NextWith(object any) (hasNext bool) {
 	if r.current < r.Len() {
 		r.AtWith(r.current, object)
 		r.current++
@@ -76,19 +76,19 @@ func (*EmptyIterator) Len() int {
 	return 0
 }
 
-func (*EmptyIterator) At(int) interface{} {
+func (*EmptyIterator) At(int) any {
 	return nil
 }
 
-func (*EmptyIterator) AtWith(int, interface{}) {
+func (*EmptyIterator) AtWith(int, any) {
 	return
 }
 
-func (*EmptyIterator) Next() (interface{}, bool) {
+func (*EmptyIterator) Next() (any, bool) {
 	return nil, false
 }
 
-func (*EmptyIterator) NextWith(object interface{}) bool {
+func (*EmptyIterator) NextWith(object any) bool {
 	return false
 }
 

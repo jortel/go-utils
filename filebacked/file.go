@@ -47,7 +47,7 @@ type Writer struct {
 }
 
 // Append (write) object.
-func (w *Writer) Append(object interface{}) {
+func (w *Writer) Append(object any) {
 	// Lazy open.
 	w.open()
 	// Seek end.
@@ -229,7 +229,7 @@ func (r *Reader) Len() (length int) {
 }
 
 // At returns the object at index.
-func (r *Reader) At(index int) (object interface{}) {
+func (r *Reader) At(index int) (object any) {
 	// Lazy open.
 	r.open()
 	// Seek.
@@ -263,7 +263,7 @@ func (r *Reader) At(index int) (object interface{}) {
 }
 
 // AtWith get the object at index.
-func (r *Reader) AtWith(index int, object interface{}) {
+func (r *Reader) AtWith(index int, object any) {
 	// Lazy open.
 	r.open()
 	// Seek.

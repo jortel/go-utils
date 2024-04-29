@@ -28,7 +28,7 @@ func TestList(t *testing.T) {
 		Name string
 	}
 
-	input := []interface{}{}
+	input := []any{}
 	for i := 0; i < 10; i++ {
 		input = append(
 			input,

@@ -27,7 +27,7 @@ type Sink struct {
 }
 
 // WithName returns a named logger.
-func WithName(name string, kvpair ...interface{}) logr.Logger {
+func WithName(name string, kvpair ...any) logr.Logger {
 	return logr.New(
 		&Sink{
 			name:   name,
@@ -66,7 +66,7 @@ func (s *Sink) Init(_ logr.RuntimeInfo) {
 }
 
 // Info logs at info.
-func (s *Sink) Info(_ int, message string, kvpair ...interface{}) {
+func (s *Sink) Info(_ int, message string, kvpair ...any) {
 	fields := fields(kvpair)
 	entry := s.delegate.WithFields(s.fields)
 	entry = entry.WithFields(fields)
@@ -74,7 +74,7 @@ func (s *Sink) Info(_ int, message string, kvpair ...interface{}) {
 }
 
 // Error logs an error.
-func (s *Sink) Error(err error, message string, kvpair ...interface{}) {
+func (s *Sink) Error(err error, message string, kvpair ...any) {
 	if err == nil {
 		return
 	}
@@ -127,7 +127,7 @@ func (s *Sink) WithName(name string) logr.LogSink {
 }
 
 // WithValues returns a logger with values.
-func (s *Sink) WithValues(kvpair ...interface{}) logr.LogSink {
+func (s *Sink) WithValues(kvpair ...any) logr.LogSink {
 	return &Sink{
 		name:   s.name,
 		fields: fields(kvpair),
@@ -143,7 +143,7 @@ func (s *Sink) named(message string) (m string) {
 }
 
 // fields returns fields for kvpair.
-func fields(kvpair []interface{}) log.Fields {
+func fields(kvpair []any) log.Fields {
 	fields := log.Fields{}
 	for i := range kvpair {
 		if i%2 != 0 {

@@ -11,11 +11,11 @@ var catalog = Catalog{}
 // Catalog of types.
 type Catalog struct {
 	sync.Mutex
-	content []interface{}
+	content []any
 }
 
 // add an object (proto) to the catalog.
-func (r *Catalog) add(object interface{}) (kind uint16) {
+func (r *Catalog) add(object any) (kind uint16) {
 	if object == nil {
 		return
 	}
@@ -42,7 +42,7 @@ func (r *Catalog) add(object interface{}) (kind uint16) {
 }
 
 // build object using the catalog.
-func (r *Catalog) build(kind uint16) (object interface{}, found bool) {
+func (r *Catalog) build(kind uint16) (object any, found bool) {
 	r.Lock()
 	defer r.Unlock()
 	content := r.content

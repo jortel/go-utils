@@ -86,7 +86,7 @@ type List struct {
 }
 
 // Append an object.
-func (l *List) Append(object interface{}) {
+func (l *List) Append(object any) {
 	switch object.(type) {
 	case Iterator:
 		itr := object.(Iterator)
@@ -109,14 +109,14 @@ func (l *List) Len() int {
 }
 
 // At returns the object at index.
-func (l *List) At(index int) (object interface{}) {
+func (l *List) At(index int) (object any) {
 	reader := l.writer.Reader(true)
 	object = reader.At(index)
 	return
 }
 
 // AtWith populates with the object at index.
-func (l *List) AtWith(index int, object interface{}) {
+func (l *List) AtWith(index int, object any) {
 	reader := l.writer.Reader(true)
 	reader.AtWith(index, object)
 	return
