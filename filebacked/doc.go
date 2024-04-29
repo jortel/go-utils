@@ -1,4 +1,4 @@
 /*
-Provides file-backed collections.
+Package filebacked provides file-backed collections.
 */
 package filebacked

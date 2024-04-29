@@ -2,9 +2,10 @@ package filebacked
 
 import (
 	"fmt"
-	"github.com/onsi/gomega"
 	"testing"
 	"time"
+
+	"github.com/onsi/gomega"
 )
 
 func TestList(t *testing.T) {

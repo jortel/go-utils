@@ -1,3 +1,5 @@
+package filebacked
+
 /*
 Provides file-backed list.
 
@@ -12,58 +14,61 @@ list.Append(object)
 //
 // Iterate the list.
 itr := list.Iter()
-for i := 0; i < itr.Len(); i++ {
-    person := itr.At(i)
-    ...
-}
+
+	for i := 0; i < itr.Len(); i++ {
+	    person := itr.At(i)
+	    ...
+	}
 
 //
 // Iterate the list.
 itr := list.Iter()
-for i := 0; i < itr.Len(); i++ {
-    person := Person{}
-    itr.AtWith(i, &person))
-    ...
-}
+
+	for i := 0; i < itr.Len(); i++ {
+	    person := Person{}
+	    itr.AtWith(i, &person))
+	    ...
+	}
 
 //
 // Iterate the list.
 itr := list.Iter()
-for {
-    object, hasNext := itr.Next()
-    if !hasNext {
-        break
-    }
-    ...
-}
+
+	for {
+	    object, hasNext := itr.Next()
+	    if !hasNext {
+	        break
+	    }
+	    ...
+	}
 
 //
 // Iterate the list.
 itr := list.Iter()
-for object, hasNext := itr.Next(); hasNext; object, hasNext = itr.Next() {
-    ...
-}
+
+	for object, hasNext := itr.Next(); hasNext; object, hasNext = itr.Next() {
+	    ...
+	}
 
 //
 // Iterate the list.
 itr := list.Iter()
-for {
-    person := Person{}
-    hasNext := itr.NextWith(&person))
-    if !hasNext {
-        break
-    }
-    ...
-}
+
+	for {
+	    person := Person{}
+	    hasNext := itr.NextWith(&person))
+	    if !hasNext {
+	        break
+	    }
+	    ...
+	}
 */
-package filebacked
 
 import (
 	"runtime"
 )
 
-//
-// List factory.
+// NewList returns a new list.
 func NewList() (list *List) {
 	list = &List{}
 	runtime.SetFinalizer(
@@ -74,14 +79,12 @@ func NewList() (list *List) {
 	return
 }
 
-//
-// File-backed list.
+// List is a File-backed list.
 type List struct {
 	// File writer.
 	writer Writer
 }
 
-//
 // Append an object.
 func (l *List) Append(object interface{}) {
 	switch object.(type) {
@@ -100,29 +103,26 @@ func (l *List) Append(object interface{}) {
 	}
 }
 
-//
-// Length.
-// Number of objects.
+// Len returns the number of objects.
 func (l *List) Len() int {
 	return len(l.writer.index)
 }
 
-// Object at index.
+// At returns the object at index.
 func (l *List) At(index int) (object interface{}) {
 	reader := l.writer.Reader(true)
 	object = reader.At(index)
 	return
 }
 
-// Object at index.
+// AtWith populates with the object at index.
 func (l *List) AtWith(index int, object interface{}) {
 	reader := l.writer.Reader(true)
 	reader.AtWith(index, object)
 	return
 }
 
-//
-// Get an iterator.
+// Iter returns an iterator.
 func (l *List) Iter() (itr Iterator) {
 	if l.Len() > 0 {
 		itr = &FbIterator{
@@ -135,7 +135,6 @@ func (l *List) Iter() (itr Iterator) {
 	return
 }
 
-//
 // Close (delete) the list.
 func (l *List) Close() {
 	l.writer.Close()

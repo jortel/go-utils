@@ -4,6 +4,7 @@ GOIMPORTS = $(GOBIN)/goimports
 
 PKG = ./error/... \
       ./logr/... \
+      ./filebacked/... \
       ./cmd/...
 
 PKGDIR = $(subst /...,,$(PKG))

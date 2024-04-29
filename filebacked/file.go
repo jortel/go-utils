@@ -1,40 +1,40 @@
+package filebacked
+
 /*
 File backing for collections.
 File format:
-   | kind: 2 (uint16)
-   | size: 8 (uint64)
-   | object: n (gob encoded)
-   | ...
+
+	| kind: 2 (uint16)
+	| size: 8 (uint64)
+	| object: n (gob encoded)
+	| ...
 */
-package filebacked
 
 import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
-	"github.com/google/uuid"
-	liberr "github.com/konveyor/controller/pkg/error"
-	"github.com/konveyor/controller/pkg/logging"
 	"io"
 	"os"
 	pathlib "path"
 	"runtime"
+
+	"github.com/google/uuid"
+	liberr "github.com/jortel/go-utils/error"
+	"github.com/jortel/go-utils/logr"
 )
 
-var log = logging.WithName("filebacked")
+var log = logr.WithName("filebacked")
 
-//
-// File extension.
+// Extension is File extension.
 const (
 	Extension = ".fb"
 )
 
-//
-// Working Directory.
+// WorkingDir is the directory used to stored files.
 var WorkingDir = "/tmp"
 
-//
-// Writer.
+// Writer performs writing.
 type Writer struct {
 	// File path.
 	path string
@@ -46,7 +46,6 @@ type Writer struct {
 	dirty bool
 }
 
-//
 // Append (write) object.
 func (w *Writer) Append(object interface{}) {
 	// Lazy open.
@@ -80,8 +79,7 @@ func (w *Writer) Append(object interface{}) {
 	return
 }
 
-//
-// Build a reader.
+// Reader builds a reader.
 func (w *Writer) Reader(shared bool) (reader *Reader) {
 	w.open()
 	w.flush()
@@ -117,7 +115,6 @@ func (w *Writer) Reader(shared bool) (reader *Reader) {
 	return
 }
 
-//
 // Close the writer.
 func (w *Writer) Close() {
 	defer func() {
@@ -133,7 +130,6 @@ func (w *Writer) Close() {
 		w.path)
 }
 
-//
 // Flush.
 func (w *Writer) flush() {
 	if !w.dirty {
@@ -147,7 +143,6 @@ func (w *Writer) flush() {
 	}
 }
 
-//
 // Open the writer.
 func (w *Writer) open() {
 	if w.file != nil {
@@ -167,7 +162,6 @@ func (w *Writer) open() {
 	return
 }
 
-//
 // Write entry.
 func (w *Writer) writeEntry(kind uint16, bfr bytes.Buffer) (offset int64) {
 	file := w.file
@@ -210,16 +204,14 @@ func (w *Writer) writeEntry(kind uint16, bfr bytes.Buffer) (offset int64) {
 	return
 }
 
-//
-// New path.
+// newPath returns an absolute path.
 func (w *Writer) newPath() string {
 	uid, _ := uuid.NewUUID()
 	name := uid.String() + Extension
 	return pathlib.Join(WorkingDir, name)
 }
 
-//
-// Reader.
+// Reader performs reading.
 type Reader struct {
 	// File path.
 	path string
@@ -231,15 +223,12 @@ type Reader struct {
 	shared bool
 }
 
-//
-// Length.
-// Number of objects in the list.
+// Len returns the number of objects in the list.
 func (r *Reader) Len() (length int) {
 	return len(r.index)
 }
 
-//
-// Get the object at index.
+// At returns the object at index.
 func (r *Reader) At(index int) (object interface{}) {
 	// Lazy open.
 	r.open()
@@ -273,8 +262,7 @@ func (r *Reader) At(index int) (object interface{}) {
 	return
 }
 
-//
-// Get the object at index.
+// AtWith get the object at index.
 func (r *Reader) AtWith(index int, object interface{}) {
 	// Lazy open.
 	r.open()
@@ -304,7 +292,6 @@ func (r *Reader) AtWith(index int, object interface{}) {
 	return
 }
 
-//
 // Close the reader.
 func (r *Reader) Close() {
 	if r.shared {
@@ -323,7 +310,6 @@ func (r *Reader) Close() {
 		r.path)
 }
 
-//
 // Read next entry.
 func (r *Reader) readEntry() (kind uint16, bfr []byte) {
 	file := r.file
@@ -362,7 +348,6 @@ func (r *Reader) readEntry() (kind uint16, bfr []byte) {
 	return
 }
 
-//
 // Open the reader.
 func (r *Reader) open() {
 	if r.shared || r.file != nil {
