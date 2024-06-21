@@ -148,7 +148,8 @@ func fields(kvpair []any) log.Fields {
 	for i := range kvpair {
 		if i%2 != 0 {
 			key := fmt.Sprintf("%v", kvpair[i-1])
-			fields[key] = kvpair[i]
+			v := fmt.Sprintf("%+v", kvpair[i])
+			fields[key] = v
 		}
 	}
 	return fields
