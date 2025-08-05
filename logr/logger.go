@@ -78,7 +78,7 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 	if err == nil {
 		return
 	}
-	snapshot, cast := err.(liberr.SnapshotError)
+	snapshot, cast := err.(liberr.Snapshot)
 	if cast {
 		err = snapshot.Unwrap()
 		if context := snapshot.Context(); context != nil {

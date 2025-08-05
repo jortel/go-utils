@@ -24,7 +24,8 @@ type Traced interface {
 	Stack() string
 }
 
-type SnapshotError interface {
+// Snapshot is a wrapped error that captures the stack and context.
+type Snapshot interface {
 	error
 	Wrapped
 	WithContext
