@@ -13,14 +13,22 @@ type Wrapped interface {
 	Unwrap() error
 }
 
-// TracedError is a wrapped error that provides captured context and stack trace.
-type TracedError interface {
-	error
-	Wrapped
+type WithContext interface {
 	// Context returns the error context.
 	Context() []any
+}
+
+// Traced error with captured stack trace.
+type Traced interface {
 	// Stack returns a description of the captured stack trace.
 	Stack() string
+}
+
+type SnapshotError interface {
+	error
+	Wrapped
+	WithContext
+	Traced
 }
 
 // New returns a new wrapped error.

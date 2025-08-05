@@ -78,10 +78,10 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 	if err == nil {
 		return
 	}
-	traced, cast := err.(liberr.TracedError)
+	snapshot, cast := err.(liberr.SnapshotError)
 	if cast {
-		err = traced.Unwrap()
-		if context := traced.Context(); context != nil {
+		err = snapshot.Unwrap()
+		if context := snapshot.Context(); context != nil {
 			context = append(
 				context,
 				kvpair...)
@@ -89,8 +89,8 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 		}
 		if s.structured {
 			fields := fields(kvpair)
-			fields["error"] = traced.Error()
-			fields["stack"] = traced.Stack()
+			fields["error"] = snapshot.Error()
+			fields["stack"] = snapshot.Stack()
 			fields["logger"] = s.name
 			entry := s.delegate.WithFields(s.fields)
 			entry = entry.WithFields(fields)
@@ -100,9 +100,9 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 			entry := s.delegate.WithFields(s.fields)
 			entry = entry.WithFields(fields)
 			if message != "" {
-				entry.Error(s.named(message), "\n", traced.Error(), traced.Stack())
+				entry.Error(s.named(message), "\n", snapshot.Error(), snapshot.Stack())
 			} else {
-				entry.Error(s.named(traced.Error()), traced.Stack())
+				entry.Error(s.named(snapshot.Error()), snapshot.Stack())
 			}
 		}
 	} else {
