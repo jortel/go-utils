@@ -18,5 +18,16 @@ fmt: $(GOIMPORTS)
 vet:
 	go vet ${PKG}
 
+test: bin
+	go test -count=1 -v ./error/... ./logr/... ./filebacked/...
+	@echo "Running cmd..."
+	@bin/cmd
+	@code=$$?;\
+	if [ $$code -eq 0 ]; then \
+	  echo "PASS"; \
+	else \
+	  echo "FAIL"; \
+	fi
+
 $(GOIMPORTS):
 	go install golang.org/x/tools/cmd/goimports@latest

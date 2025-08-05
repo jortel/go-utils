@@ -27,19 +27,18 @@ func TestError(t *testing.T) {
 	wrapped := Wrap(err, "help")
 	le3 := Wrap(wrapped).(*Error)
 	g.Expect(le3).NotTo(gomega.BeNil())
-	g.Expect(le3.wrapped).To(gomega.Equal(wrapped))
-	g.Expect(le3.wrapped).To(gomega.Equal(wrapped))
+	g.Expect(le3.wrapped).To(gomega.Equal(err))
 	g.Expect(len(le3.stack)).To(gomega.Equal(4))
 	g.Expect(errors.Unwrap(le3)).To(gomega.Equal(err))
 	g.Expect(len(le3.Context())).To(gomega.Equal(0))
-	g.Expect(le3.Error()).To(gomega.Equal("help: failed"))
+	g.Expect(le3.Error()).To(gomega.Equal("help | caused by: 'failed'"))
 
 	le4 := Wrap(
 		le3, "Failed to create user.",
 		"name", "larry",
 		"age", 10)
 	g.Expect(le4.(*Error).Error()).To(
-		gomega.Equal("Failed to create user. caused by: 'help: failed'"))
+		gomega.Equal("Failed to create user. | caused by: 'help' | caused by: 'failed'"))
 	g.Expect(le4.(*Error).Context()).ToNot(gomega.BeNil())
 	g.Expect(len(le4.(*Error).Context())).To(gomega.Equal(4))
 
@@ -48,7 +47,7 @@ func TestError(t *testing.T) {
 		"a", "A",
 		"b", "B")
 	g.Expect(le5.(*Error).Error()).To(
-		gomega.Equal("Web POST failed. caused by: 'Failed to create user.' caused by: 'help: failed'"))
+		gomega.Equal("Web POST failed. | caused by: 'Failed to create user. | caused by: 'help'' | caused by: 'failed'"))
 	g.Expect(le5.(*Error).Context()).ToNot(gomega.BeNil())
 	g.Expect(len(le5.(*Error).Context())).To(gomega.Equal(8))
 
@@ -66,6 +65,19 @@ func TestNew(t *testing.T) {
 	g.Expect(len(le.stack)).To(gomega.Equal(5))
 	g.Expect(le.Error()).To(gomega.Equal(err.Error()))
 	g.Expect(len(le.Context())).To(gomega.Equal(4))
+}
+
+func TestErrorf(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	err := Errorf(
+		"create user failed.  name=%s age=%d",
+		"Elmer",
+		10)
+	le := err.(*Error)
+	g.Expect(le).NotTo(gomega.BeNil())
+	g.Expect(len(le.stack)).To(gomega.Equal(5))
+	g.Expect(le.Error()).To(gomega.Equal(err.Error()))
+	g.Expect(le.Error()).To(gomega.Equal("create user failed.  name=Elmer age=10"))
 }
 
 func TestUnwrap(t *testing.T) {

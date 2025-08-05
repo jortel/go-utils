@@ -78,10 +78,10 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 	if err == nil {
 		return
 	}
-	xErr, cast := err.(*liberr.Error)
+	snapshot, cast := err.(liberr.Snapshot)
 	if cast {
-		err = xErr.Unwrap()
-		if context := xErr.Context(); context != nil {
+		err = snapshot.Unwrap()
+		if context := snapshot.Context(); context != nil {
 			context = append(
 				context,
 				kvpair...)
@@ -89,8 +89,8 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 		}
 		if s.structured {
 			fields := fields(kvpair)
-			fields["error"] = xErr.Error()
-			fields["stack"] = xErr.Stack()
+			fields["error"] = snapshot.Error()
+			fields["stack"] = snapshot.Stack()
 			fields["logger"] = s.name
 			entry := s.delegate.WithFields(s.fields)
 			entry = entry.WithFields(fields)
@@ -100,16 +100,14 @@ func (s *Sink) Error(err error, message string, kvpair ...any) {
 			entry := s.delegate.WithFields(s.fields)
 			entry = entry.WithFields(fields)
 			if message != "" {
-				entry.Error(s.named(message), "\n", xErr.Error(), xErr.Stack())
+				entry.Error(s.named(message), "\n", snapshot.Error(), snapshot.Stack())
 			} else {
-				entry.Error(s.named(xErr.Error()), xErr.Stack())
+				entry.Error(s.named(snapshot.Error()), snapshot.Stack())
 			}
 		}
 	} else {
-		if wErr, wrapped := err.(interface {
-			Unwrap() error
-		}); wrapped {
-			err = wErr.Unwrap()
+		if wrapped, cast := err.(liberr.Wrapped); cast {
+			err = wrapped.Unwrap()
 		}
 		err = liberr.Wrap(err)
 		s.Error(err, message, kvpair...)
