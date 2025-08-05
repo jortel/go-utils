@@ -7,16 +7,39 @@ import (
 	"strings"
 )
 
+// Wrapped error.
+type Wrapped interface {
+	// Unwrap returns the wrapped error.
+	Unwrap() error
+}
+
+// TracedError is a wrapped error that provides captured context and stack trace.
+type TracedError interface {
+	error
+	Wrapped
+	// Context returns the error context.
+	Context() []any
+	// Stack returns a description of the captured stack trace.
+	Stack() string
+}
+
 // New returns a new wrapped error.
-func New(m string, kvpair ...any) error {
-	return Wrap(
+func New(m string, kvpair ...any) (newError error) {
+	newError = Wrap(
 		errors.New(m),
 		kvpair...)
+	return
+}
+
+// Errorf returns a new wrapped error.
+func Errorf(m string, v ...any) (newError error) {
+	newError = Wrap(fmt.Errorf(m, v...))
+	return
 }
 
 // Wrap an error.
 // Returns `err` when err is `nil` or error.
-func Wrap(err error, kvpair ...any) error {
+func Wrap(err error, kvpair ...any) (newError error) {
 	if err == nil {
 		return err
 	}
@@ -40,13 +63,11 @@ func Wrap(err error, kvpair ...any) error {
 			break
 		}
 	}
-	newError := &Error{
+	newError = &Error{
 		stack:   stack,
 		wrapped: err,
 	}
-
-	newError.append(kvpair)
-
+	newError.(*Error).append(kvpair)
 	return newError
 }
 
@@ -58,7 +79,7 @@ func Unwrap(err error) (out error) {
 	}
 	out = err
 	for {
-		if wrapped, cast := out.(interface{ Unwrap() error }); cast {
+		if wrapped, cast := out.(Wrapped); cast {
 			out = wrapped.Unwrap()
 		} else {
 			break
@@ -81,12 +102,13 @@ type Error struct {
 }
 
 // Error description.
-func (e Error) Error() string {
+func (e Error) Error() (s string) {
 	if len(e.description) > 0 {
-		return e.causedBy(e.description, e.wrapped.Error())
+		s = e.causedBy(e.description, e.wrapped.Error())
 	} else {
-		return e.wrapped.Error()
+		s = e.wrapped.Error()
 	}
+	return
 }
 
 // Stack returns the stack trace.
@@ -97,18 +119,21 @@ func (e Error) Error() string {
 //	package.Function()
 //	  file:line
 //	...
-func (e Error) Stack() string {
-	return strings.Join(e.stack, "\n")
+func (e Error) Stack() (s string) {
+	s = strings.Join(e.stack, "\n")
+	return
 }
 
 // Context returns the`context` key/value pairs.
-func (e Error) Context() []any {
-	return e.context
+func (e Error) Context() (context []any) {
+	context = e.context
+	return
 }
 
 // Unwrap the error.
-func (e Error) Unwrap() error {
-	return Unwrap(e.wrapped)
+func (e Error) Unwrap() (wrapped error) {
+	wrapped = Unwrap(e.wrapped)
+	return
 }
 
 // append the context.
@@ -132,9 +157,10 @@ func (e *Error) append(kvpair []any) {
 }
 
 // Build caused-by.
-func (e *Error) causedBy(error, caused string) string {
-	return fmt.Sprintf(
+func (e *Error) causedBy(error, caused string) (s string) {
+	s = fmt.Sprintf(
 		"%s | caused by: '%s'",
 		error,
 		caused)
+	return
 }

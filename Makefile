@@ -18,5 +18,9 @@ fmt: $(GOIMPORTS)
 vet:
 	go vet ${PKG}
 
+test:
+	go test -count=1 -v ./error/... ./logr/... ./filebacked/...
+
+
 $(GOIMPORTS):
 	go install golang.org/x/tools/cmd/goimports@latest

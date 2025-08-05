@@ -19,7 +19,7 @@ c = Unwrap(b)  // a == c
 // Wrap with context.
 url := "http://host/..."
 d := e1.Wrap("Web request failed.", "url", url)
-d.Error()   // "Web request failed. caused by: 'No route to host'"
+d.Error()   // "Web request failed. | caused by: 'No route to host'"
 d.Context() // []string{"url", "http://host/..."}
 */
 package error
