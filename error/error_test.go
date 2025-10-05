@@ -89,3 +89,24 @@ func TestUnwrap(t *testing.T) {
 	g.Expect(Unwrap(Wrap(err, ""))).To(gomega.Equal(err))
 	g.Expect(Unwrap(Wrap(Wrap(err, ""), ""))).To(gomega.Equal(err))
 }
+
+func TestRecovered(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	fn := func(pIn any) (err error) {
+		defer func() {
+			p := recover()
+			if p != nil {
+				err = Recovered(p)
+			}
+		}()
+		panic(pIn)
+	}
+	err := fn("Test")
+	g.Expect(err).ToNot(gomega.BeNil())
+	err = fn(New("Test"))
+	g.Expect(err).ToNot(gomega.BeNil())
+	g.Expect(err.(error)).ToNot(gomega.BeNil())
+	err = fn(nil)
+	g.Expect(err).To(gomega.BeNil())
+	return
+}
