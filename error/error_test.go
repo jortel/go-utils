@@ -105,7 +105,6 @@ func TestRecovered(t *testing.T) {
 	g.Expect(err).ToNot(gomega.BeNil())
 	err = fn(New("Test"))
 	g.Expect(err).ToNot(gomega.BeNil())
-	g.Expect(err.(error)).ToNot(gomega.BeNil())
 	err = fn(nil)
 	g.Expect(err).To(gomega.BeNil())
 	return
