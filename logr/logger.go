@@ -16,6 +16,12 @@ const (
 	EnvLevel       = "LOG_LEVEL"
 )
 
+const (
+	NORMAL = 0
+	EXTRA  = 1
+	DEBUG  = 2
+)
+
 // Sink -.
 type Sink struct {
 	delegate    *log.Logger
@@ -38,13 +44,13 @@ func New(name string, level int, kvpair ...any) logr.Logger {
 		&Sink{
 			name:   name,
 			fields: fields(kvpair),
-			level:  max(0, level),
+			level:  max(NORMAL, level),
 		})
 }
 
 // WithName returns a named logger.
 func WithName(name string, kvpair ...any) logr.Logger {
-	return New(name, 0, kvpair...)
+	return New(name, NORMAL, kvpair...)
 }
 
 // Init builds the delegate logger.

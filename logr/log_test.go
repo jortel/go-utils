@@ -1,6 +1,7 @@
 package logr
 
 import (
+	"os"
 	"testing"
 
 	liberr "github.com/jortel/go-utils/error"
@@ -11,6 +12,11 @@ func TestNew(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	log := New("test", 2)
+	g.Expect(log).NotTo(gomega.BeNil())
+	g.Expect(log.GetSink().(*Sink).level).To(gomega.Equal(2))
+
+	_ = os.Setenv("LOG_LEVEL", "2")
+	log = New("test", 0)
 	g.Expect(log).NotTo(gomega.BeNil())
 	g.Expect(log.GetSink().(*Sink).level).To(gomega.Equal(2))
 }
