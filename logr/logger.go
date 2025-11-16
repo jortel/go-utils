@@ -10,12 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	EnvDevelopment = "LOG_DEVELOPMENT"
-	EnvStructured  = "LOG_STRUCTURED"
-	EnvLevel       = "LOG_LEVEL"
-)
-
 // Sink -.
 type Sink struct {
 	delegate    *log.Logger
@@ -24,15 +18,6 @@ type Sink struct {
 	development bool
 	structured  bool
 	level       int
-}
-
-// WithName returns a named logger.
-func WithName(name string, kvpair ...any) logr.Logger {
-	return logr.New(
-		&Sink{
-			name:   name,
-			fields: fields(kvpair),
-		})
 }
 
 // Init builds the delegate logger.
@@ -60,9 +45,6 @@ func (s *Sink) Init(_ logr.RuntimeInfo) {
 		fmt.PrettyPrint = true
 		s.delegate.Formatter = fmt
 	}
-	v = os.Getenv(EnvLevel)
-	n, _ := strconv.Atoi(v)
-	s.level = n
 }
 
 // Info logs at info.
@@ -121,14 +103,36 @@ func (s *Sink) Enabled(level int) bool {
 
 // WithName returns a logger with name.
 func (s *Sink) WithName(name string) logr.LogSink {
-	return &Sink{name: name}
+	return &Sink{
+		delegate:    s.delegate,
+		fields:      s.fields,
+		name:        name,
+		development: s.development,
+		structured:  s.structured,
+		level:       s.level,
+	}
 }
 
 // WithValues returns a logger with values.
 func (s *Sink) WithValues(kvpair ...any) logr.LogSink {
 	return &Sink{
-		name:   s.name,
-		fields: fields(kvpair),
+		delegate:    s.delegate,
+		fields:      fields(kvpair),
+		name:        s.name,
+		development: s.development,
+		structured:  s.structured,
+		level:       s.level,
+	}
+}
+
+func (s *Sink) WithLevel(n int) logr.LogSink {
+	return &Sink{
+		delegate:    s.delegate,
+		fields:      s.fields,
+		name:        s.name,
+		development: s.development,
+		structured:  s.structured,
+		level:       max(0, n),
 	}
 }
 

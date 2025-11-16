@@ -32,6 +32,18 @@ type Snapshot interface {
 	Traced
 }
 
+// Recovered returns an error recovered panic.
+func Recovered(p any) (err error) {
+	if p == nil {
+		return
+	}
+	err, cast := p.(error)
+	if !cast {
+		err = Errorf("%+v", p)
+	}
+	return
+}
+
 // New returns a new wrapped error.
 func New(m string, kvpair ...any) (newError error) {
 	newError = Wrap(

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	log := logr.WithName("Test", "and", "fields")
+	log := logr.New("Test", 0, "and", "fields")
 
 	log.Info("HELLO", "name", "jeff")
 
