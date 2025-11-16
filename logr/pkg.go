@@ -45,7 +45,7 @@ func Level(logger logr.Logger, n int) logr.Logger {
 	sink := logger.GetSink()
 	if s, cast := sink.(*Sink); cast {
 		sink = s.WithLevel(n)
-		return logr.New(sink)
+		return logger.WithSink(sink)
 	} else {
 		return logger
 	}
