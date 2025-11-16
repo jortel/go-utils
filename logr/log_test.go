@@ -15,10 +15,20 @@ func TestNew(t *testing.T) {
 	g.Expect(log).NotTo(gomega.BeNil())
 	g.Expect(log.GetSink().(*Sink).level).To(gomega.Equal(2))
 
-	_ = os.Setenv("LOG_LEVEL", "2")
 	log = New("test", 0)
+	log = Level(log, 4)
 	g.Expect(log).NotTo(gomega.BeNil())
-	g.Expect(log.GetSink().(*Sink).level).To(gomega.Equal(2))
+	g.Expect(log.GetSink().(*Sink).level).To(gomega.Equal(4))
+
+	func() {
+		_ = os.Setenv(EnvLevel, "2")
+		defer func() {
+			_ = os.Unsetenv(EnvLevel)
+		}()
+		log = New("test", 0)
+		g.Expect(log).NotTo(gomega.BeNil())
+		g.Expect(log.GetSink().(*Sink).level).To(gomega.Equal(2))
+	}()
 }
 
 func TestList(t *testing.T) {
