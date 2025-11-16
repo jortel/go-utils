@@ -103,22 +103,36 @@ func (s *Sink) Enabled(level int) bool {
 
 // WithName returns a logger with name.
 func (s *Sink) WithName(name string) logr.LogSink {
-	return &Sink{name: name}
+	return &Sink{
+		delegate:    s.delegate,
+		fields:      s.fields,
+		name:        name,
+		development: s.development,
+		structured:  s.structured,
+		level:       s.level,
+	}
 }
 
 // WithValues returns a logger with values.
 func (s *Sink) WithValues(kvpair ...any) logr.LogSink {
 	return &Sink{
-		name:   s.name,
-		fields: fields(kvpair),
+		delegate:    s.delegate,
+		fields:      fields(kvpair),
+		name:        s.name,
+		development: s.development,
+		structured:  s.structured,
+		level:       s.level,
 	}
 }
 
-func (s *Sink) WithLevel(level int) logr.LogSink {
+func (s *Sink) WithLevel(n int) logr.LogSink {
 	return &Sink{
-		name:   s.name,
-		fields: s.fields,
-		level:  max(0, level),
+		delegate:    s.delegate,
+		fields:      s.fields,
+		name:        s.name,
+		development: s.development,
+		structured:  s.structured,
+		level:       max(0, n),
 	}
 }
 
