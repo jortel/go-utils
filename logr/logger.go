@@ -26,13 +26,25 @@ type Sink struct {
 	level       int
 }
 
-// WithName returns a named logger.
-func WithName(name string, kvpair ...any) logr.Logger {
+// New returns a named logger.
+func New(name string, level int, kvpair ...any) logr.Logger {
+	v := os.Getenv(EnvLevel)
+	if v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			level = n
+		}
+	}
 	return logr.New(
 		&Sink{
 			name:   name,
 			fields: fields(kvpair),
+			level:  max(0, level),
 		})
+}
+
+// WithName returns a named logger.
+func WithName(name string, kvpair ...any) logr.Logger {
+	return New(name, 0, kvpair...)
 }
 
 // Init builds the delegate logger.
@@ -60,9 +72,6 @@ func (s *Sink) Init(_ logr.RuntimeInfo) {
 		fmt.PrettyPrint = true
 		s.delegate.Formatter = fmt
 	}
-	v = os.Getenv(EnvLevel)
-	n, _ := strconv.Atoi(v)
-	s.level = n
 }
 
 // Info logs at info.
